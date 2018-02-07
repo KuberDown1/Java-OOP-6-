@@ -1,0 +1,191 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.*;
+
+public class Grades {
+
+ public static void main(String[] args) throws IOException {
+
+  // Student data in responses.txt file
+  boolean[][] studentAnswers = new boolean[100][20];
+  String responses = "C:\\Users\\kubert\\Documents\\NetBeansProjects\\TwoDArray\\src\\twodarray\\responses.txt";
+
+  // Answers data in key.txt file
+  boolean answers[] = new boolean[100];
+  String answersFile = "C:\\Users\\kubert\\Documents\\NetBeansProjects\\TwoDArray\\src\\twodarray\\key.txt";
+
+  int noOfA = 0; // Count # of exams that score an "A" grade
+  int noOfB = 0; // Count # of exams that score a "B" grade
+  int noOfC = 0; // Count # of exams that score a "C" grade
+  int noOfD = 0; // Count # of exams that score a "D" grade
+  int noOfF = 0; // Count # of exams that score an "F" grade
+  int totalCorrect = 0; // Count # of exams that answer all 20 questions correctly
+  double noQuestionsCorrect = 0.0; // float allows a decimal output of avg quiz score
+
+  // Result
+  int allCorrect = 0; // Stores indexes of students who scored all correct
+  int[] score = new int[100]; // Scores of students
+
+  // Reading student answers
+  try {
+   BufferedReader br = new BufferedReader(new FileReader(responses));
+   int row = 0;
+   String temp = "";
+   int i = 0;
+   while ((temp = br.readLine()) != null) {
+    if (row >= 100) {
+     break;
+    } // Break loop if file contains more than 100 quizzes               
+    studentAnswers[row][i] = Boolean.valueOf(temp);
+    i++;
+    if ((i != 0) && (i % 20 == 0)) { // 20 answers per quiz
+     i = 0;
+     row++;
+    }
+   }
+  } catch (IOException e) {
+   System.out.println("ERROR : " + e);
+  }
+
+  // Reading correct answers
+  try {
+   BufferedReader br = new BufferedReader(new FileReader(answersFile));
+   int index = 0;
+   String temp = "";
+   while ((temp = br.readLine()) != null) // answers in txt file are line by line
+   {
+    answers[index] = Boolean.valueOf(temp);
+    index++;
+   }
+  } catch (IOException e) {
+   System.out.println("ERROR: " + e);
+  }
+
+  // Prints correct answers of each student
+  for (int i = 0; i < 100; i++) {
+   if (i % 4 == 0 && i < 100)
+    System.out.println();
+   System.out.print("Student " + (i + 1));
+   int noOfCorrect = 0;
+
+   for (int j = 0; j < 20; j++) {
+    if (studentAnswers[i][j] == answers[j]) {
+     noOfCorrect++;
+     totalCorrect++;
+     noQuestionsCorrect++;
+    }
+   }
+   if (noOfCorrect == 20) {
+    allCorrect++;
+   } {
+    if (noOfCorrect > 17) {
+     noOfA++;
+    } else if (noOfCorrect > 15) {
+     noOfB++;
+    } else if (noOfCorrect > 13) {
+     noOfC++;
+    } else if (noOfCorrect > 11) {
+     noOfD++;
+    } else
+     noOfF++;
+   }
+
+   score[i] = noOfCorrect * 5;
+   System.out.print(": " + noOfCorrect);
+   System.out.print("\tGrade " + getGrade(score[i]) + "\t\t\t");
+  }
+
+  System.out.println("\n");
+  System.out.print("# of A's: " + noOfA);
+  System.out.print("\t\t\t# of B's: " + noOfB);
+  System.out.print("\t\t\t# of C's: " + noOfC);
+  System.out.print("\t\t\t# of D's: " + noOfD);
+  System.out.print("\t\t\t# of F's: " + noOfF);
+  System.out.println();
+  System.out.print("\n# OF QUIZZES WITH A PERFECT SCORE: " + allCorrect);
+  if (noQuestionsCorrect >= 0) {
+   double avg = noQuestionsCorrect / 2000;
+   String strDouble = String.format("%.2f", (avg * 20));
+   System.out.print("\t\t\tAVQ QUIZ SCORE: " + strDouble);
+   System.out.print("\t\t\tTHE # OF CORRECT ANSWERS OUT OF 2000: " + totalCorrect);
+   System.out.println("\n");
+  }
+
+  // Average Grade Score and Standard Deviation
+  HashMap < String, List < Integer >> map = new HashMap < > ();
+  map.put("A", new ArrayList < Integer > ());
+  map.put("B", new ArrayList < Integer > ());
+  map.put("C", new ArrayList < Integer > ());
+  map.put("D", new ArrayList < Integer > ());
+  map.put("F", new ArrayList < Integer > ());
+
+  for (int studentScore: score) {
+   String grade = getGrade(studentScore);
+   switch (grade) {
+    case "A":
+     map.get("A").add(studentScore);
+     break;
+    case "B":
+     map.get("B").add(studentScore);
+     break;
+    case "C":
+     map.get("C").add(studentScore);
+     break;
+    case "D":
+     map.get("D").add(studentScore);
+     break;
+    case "F":
+     map.get("F").add(studentScore);
+     break;
+   }
+  }
+
+  Set < String > keys = new TreeSet(map.keySet());
+  for (String key: keys) {
+   System.out.println("\t\t\t\t\t\tSTANDARD DEVIATION " + key + ": " + printSD(map.get(key)));
+  }
+
+ }
+
+//******************************************************************************
+//  Calculating the standard deviation of the numbers:
+//  1. Work out the mean (average of the numbers)
+//  2. For each number, subtract the mean and square the results
+//  3. Work out the mean of the squared difference
+//  4. Take the square root of that
+//******************************************************************************
+ public static double printSD(List < Integer > list) {
+
+  double sum = 0;
+
+  if (list.size() == 0)
+   return 0.0;
+  for (int val: list)
+   sum += val;
+  double mean = sum / list.size();
+  for (int i = 0; i < list.size(); i++) {
+   sum += Math.pow((list.get(i) - mean), 2);
+  }
+
+  if (sum == 0)
+   return 0.0;
+  return Math.sqrt(sum / list.size());
+ }
+
+ public static String getGrade(int score) {
+  String grade = "";
+  if (score >= 90)
+   grade = "A";
+  else if (score >= 80)
+   grade = "B";
+  else if (score >= 70)
+   grade = "C";
+  else if (score >= 60)
+   grade = "D";
+  else
+   grade = "F";
+
+  return grade;
+ }
+}
